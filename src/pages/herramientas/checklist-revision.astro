@@ -1,0 +1,96 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const preguntas = [
+  '¿Estoy cumpliendo mi presupuesto?',
+  '¿Estoy aumentando mi patrimonio?',
+  '¿Estoy reduciendo mis deudas?',
+  '¿Estoy invirtiendo lo suficiente?',
+  '¿Mi portafolio sigue alineado con mis objetivos?',
+  '¿Necesito rebalancear mis inversiones?',
+];
+---
+
+<Layout
+  title="Checklist de revisión periódica"
+  description="Preguntas para revisar de forma periódica tu plan financiero, basadas en el principio 15."
+>
+  <p class="eyebrow">Herramienta &middot; Principio 15</p>
+  <h1>Checklist de revisión periódica</h1>
+  <p>
+    Todo plan financiero debe revisarse de forma periódica. Marca cada pregunta
+    a medida que la respondes; tu progreso se guarda en este navegador.
+  </p>
+
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+  <p id="progress-label" style="font-size:0.85rem; color: var(--color-ink-soft);">0 de {preguntas.length} revisadas</p>
+
+  <div class="card" id="checklist">
+    {preguntas.map((pregunta, i) => (
+      <label class="checklist-item" data-index={i}>
+        <input type="checkbox" data-index={i} />
+        <span>{pregunta}</span>
+      </label>
+    ))}
+  </div>
+
+  <button class="tool-form" id="reset-btn" style="margin-top:1.5rem; background:none; border:1px solid var(--color-border); padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer;">
+    Reiniciar checklist
+  </button>
+
+  <script define:vars={{ total: preguntas.length }}>
+    const STORAGE_KEY = 'zeta-checklist-revision';
+    const items = Array.from(document.querySelectorAll('.checklist-item'));
+    const fill = document.getElementById('progress-fill');
+    const label = document.getElementById('progress-label');
+    const resetBtn = document.getElementById('reset-btn');
+
+    function load() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function save(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function render() {
+      const state = load();
+      let checked = 0;
+      items.forEach((item) => {
+        const idx = item.getAttribute('data-index');
+        const checkbox = item.querySelector('input');
+        const isChecked = !!state[idx];
+        checkbox.checked = isChecked;
+        item.classList.toggle('checked', isChecked);
+        if (isChecked) checked += 1;
+      });
+      const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+      fill.style.width = pct + '%';
+      label.textContent = `${checked} de ${total} revisadas`;
+    }
+
+    items.forEach((item) => {
+      const checkbox = item.querySelector('input');
+      checkbox.addEventListener('change', () => {
+        const state = load();
+        const idx = item.getAttribute('data-index');
+        state[idx] = checkbox.checked;
+        save(state);
+        render();
+      });
+    });
+
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      render();
+    });
+
+    render();
+  </script>
+</Layout>

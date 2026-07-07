@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const principios = (await getCollection('principios')).sort(
+  (a, b) => a.data.numero - b.data.numero,
+);
+---
+
+<Layout title="Principios de los mejores inversionistas">
+  <p class="eyebrow">Plan financiero e inversión de alto nivel</p>
+  <h1>Principios de los mejores inversionistas de la historia</h1>
+  <p>
+    Un plan financiero verdaderamente sólido no solo organiza ingresos y gastos.
+    También incorpora principios que han guiado a algunos de los inversionistas
+    más exitosos de la historia, como Benjamin Graham, Warren Buffett, Charlie
+    Munger, Ray Dalio, Peter Lynch, Howard Marks y John C. Bogle.
+  </p>
+  <p>
+    Aunque cada uno desarrolló una filosofía distinta, existe un conjunto de
+    patrones comunes que se repiten en casi todos ellos. Este sitio los recopila
+    en 15 principios, cada uno con una herramienta práctica cuando aplica.
+  </p>
+
+  <h2>Los 15 principios</h2>
+  <div class="grid principios">
+    {principios.map((p) => (
+      <a class="card card-link" href={`/principios/${p.id}`}>
+        <span class="badge-number">{p.data.numero}</span>
+        <h3 style="margin-top:0">{p.data.titulo}</h3>
+        <p style="margin-bottom:0; color: var(--color-ink-soft); font-size:0.92rem;">
+          {p.data.resumen}
+        </p>
+      </a>
+    ))}
+  </div>
+
+  <hr />
+
+  <h2>Conclusión</h2>
+  <p>
+    Los mejores inversionistas de la historia utilizan estrategias diferentes,
+    pero comparten principios fundamentales: disciplina, educación financiera,
+    control emocional, pensamiento de largo plazo, gestión del riesgo,
+    aprendizaje continuo y constancia. Más que buscar ganancias rápidas,
+    construyen sistemas de inversión sostenibles que les permiten proteger y
+    hacer crecer su patrimonio a lo largo del tiempo.
+  </p>
+  <p>
+    Estos principios constituyen la base de cualquier plan financiero personal
+    sólido y aumentan significativamente la probabilidad de alcanzar la
+    estabilidad financiera y la creación de riqueza.
+  </p>
+
+  <p><a href="/herramientas">Explorar las herramientas estratégicas &rarr;</a></p>
+</Layout>
