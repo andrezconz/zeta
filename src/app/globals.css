@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f7f5f0;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --foreground: #0b0b0c;
+  --muted-foreground: #5c5c63;
+  --border: rgba(11, 11, 12, 0.1);
+  --gold: #b0854a;
+  --success: #1e9a5c;
+  --danger: #c23f3f;
+}
+
+.dark {
+  --background: #0b0b0c;
+  --surface: #151618;
+  --card: #1c1d20;
+  --foreground: #f7f7f5;
+  --muted-foreground: #a0a0a5;
+  --border: rgba(247, 247, 245, 0.08);
+  --gold: #c9a46a;
+  --success: #32c67a;
+  --danger: #e35b5b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-gold: var(--gold);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-gold) 35%, transparent);
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+}
+
+@keyframes fortis-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+.animate-fortis-in {
+  animation: fortis-fade-in 400ms ease-out both;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,120 @@
+// Esquema de dominio para Fortis.
+// No hay base de datos provisionada todavía: este schema queda listo para
+// correr `prisma migrate dev` en cuanto DATABASE_URL apunte a un proyecto
+// de Supabase real. Mientras tanto, la app usa src/lib/data/mock-data.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum AssetClass {
+  ETF
+  ACCIONES
+  BONOS
+  FONDOS
+  CRYPTO
+  CASH
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  DIVIDEND
+}
+
+enum Currency {
+  COP
+  USD
+}
+
+/// Espeja auth.users de Supabase (mismo id). Se crea vía trigger al registrarse.
+model Profile {
+  id            String         @id @default(uuid())
+  fullName      String?
+  baseCurrency  Currency       @default(COP)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  brokerAccounts BrokerAccount[]
+  goals         Goal[]
+  alerts        Alert[]
+
+  @@map("profiles")
+}
+
+model BrokerAccount {
+  id        String    @id @default(uuid())
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  broker    String
+  label     String?
+  createdAt DateTime  @default(now())
+  holdings  Holding[]
+
+  @@index([profileId])
+  @@map("broker_accounts")
+}
+
+model Holding {
+  id              String          @id @default(uuid())
+  brokerAccountId String
+  brokerAccount   BrokerAccount   @relation(fields: [brokerAccountId], references: [id], onDelete: Cascade)
+  asset           String
+  ticker          String
+  type            AssetClass
+  currency        Currency
+  quantity        Decimal         @db.Decimal(20, 8)
+  avgCost         Decimal         @db.Decimal(20, 4)
+  dividendYield   Decimal         @default(0) @db.Decimal(6, 3)
+  updatedAt       DateTime        @updatedAt
+  transactions    Transaction[]
+
+  @@index([brokerAccountId])
+  @@map("holdings")
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  holdingId String
+  holding   Holding         @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+  type      TransactionType
+  quantity  Decimal         @db.Decimal(20, 8)
+  price     Decimal         @db.Decimal(20, 4)
+  occurredAt DateTime
+  notes     String?
+
+  @@index([holdingId])
+  @@map("transactions")
+}
+
+model Goal {
+  id              String   @id @default(uuid())
+  profileId       String
+  profile         Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name            String
+  targetAmount    Decimal  @db.Decimal(20, 2)
+  currentAmount   Decimal  @default(0) @db.Decimal(20, 2)
+  targetDate      DateTime
+  monthlyRequired Decimal  @default(0) @db.Decimal(20, 2)
+  createdAt       DateTime @default(now())
+
+  @@index([profileId])
+  @@map("goals")
+}
+
+model Alert {
+  id        String   @id @default(uuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([profileId])
+  @@map("alerts")
+}
