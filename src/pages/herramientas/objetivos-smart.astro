@@ -34,11 +34,17 @@ const tipos = [
       {tipos.map((t) => <option value={t}>{t}</option>)}
     </select>
 
-    <label for="monto">Monto objetivo (USD)</label>
-    <input type="number" id="monto" name="monto" min="0" step="100" required />
+    <label for="moneda">Moneda</label>
+    <select id="moneda" name="moneda">
+      <option value="COP" selected>Peso colombiano (COP)</option>
+      <option value="USD">Dólar estadounidense (USD)</option>
+    </select>
 
-    <label for="ahorrado">Ya ahorrado hasta hoy (USD)</label>
-    <input type="number" id="ahorrado" name="ahorrado" min="0" step="100" value="0" />
+    <label for="monto">Monto objetivo</label>
+    <input type="number" id="monto" name="monto" min="0" step="10000" required />
+
+    <label for="ahorrado">Ya ahorrado hasta hoy</label>
+    <input type="number" id="ahorrado" name="ahorrado" min="0" step="10000" value="0" />
 
     <label for="fecha">Fecha límite</label>
     <input type="date" id="fecha" name="fecha" required />
@@ -58,6 +64,7 @@ const tipos = [
       monto: number;
       ahorrado: number;
       fecha: string;
+      moneda: 'COP' | 'USD';
     }
 
     const STORAGE_KEY = 'zeta-objetivos-smart';
@@ -65,8 +72,10 @@ const tipos = [
     const list = document.getElementById('goal-list') as HTMLDivElement;
     const emptyState = document.getElementById('empty-state') as HTMLParagraphElement;
 
-    const money = (n: number) =>
-      n.toLocaleString('es-CO', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    const money = (n: number, moneda: 'COP' | 'USD' = 'COP') => {
+      const locale = moneda === 'COP' ? 'es-CO' : 'en-US';
+      return n.toLocaleString(locale, { style: 'currency', currency: moneda, maximumFractionDigits: 0 });
+    };
 
     function load(): Goal[] {
       try {
@@ -106,10 +115,10 @@ const tipos = [
           <div class="eyebrow">${goal.tipo}</div>
           <div class="progress-track"><div class="progress-fill" style="width:${progreso}%"></div></div>
           <div class="goal-meta">
-            <span>Meta: ${money(goal.monto)}</span>
-            <span>Ahorrado: ${money(goal.ahorrado)}</span>
+            <span>Meta: ${money(goal.monto, goal.moneda)}</span>
+            <span>Ahorrado: ${money(goal.ahorrado, goal.moneda)}</span>
             <span>Fecha límite: ${goal.fecha}</span>
-            <span>Ahorro mensual necesario: <strong>${money(ahorroMensual)}</strong></span>
+            <span>Ahorro mensual necesario: <strong>${money(ahorroMensual, goal.moneda)}</strong></span>
           </div>
           <button class="remove" data-id="${goal.id}">Eliminar</button>
         `;
@@ -136,6 +145,7 @@ const tipos = [
         monto: parseFloat((document.getElementById('monto') as HTMLInputElement).value) || 0,
         ahorrado: parseFloat((document.getElementById('ahorrado') as HTMLInputElement).value) || 0,
         fecha: (document.getElementById('fecha') as HTMLInputElement).value,
+        moneda: (document.getElementById('moneda') as HTMLSelectElement).value as 'COP' | 'USD',
       });
       save(goals);
       form.reset();
