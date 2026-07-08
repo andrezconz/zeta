@@ -108,9 +108,12 @@ export default async function MetasPage() {
                     <div>
                       <p className="text-xs text-muted-foreground">Ahorro mensual sugerido</p>
                       <p className="mt-0.5 font-medium">
-                        {goal.monthlyRequired > 0
-                          ? formatCurrency(goal.monthlyRequired, "COP")
-                          : "Meta cumplida"}
+                        {complete
+                          ? "Meta cumplida"
+                          : formatCurrency(
+                              goal.monthlyRequired > 0 ? goal.monthlyRequired : remaining / Math.max(months, 1),
+                              "COP",
+                            )}
                       </p>
                     </div>
                   </div>
