@@ -19,6 +19,10 @@ function greeting() {
   return "Buenas noches";
 }
 
+const USER_FULL_NAME = "Andrez Felipe Guerrero Torres";
+const USER_FIRST_NAME = "Andrez";
+const USER_INITIALS = "AG";
+
 const notifications = [
   { id: 1, text: "Ecopetrol pagó dividendos por $1.240.000", time: "hace 2 h" },
   { id: 2, text: "Tu meta 'Fondo de emergencia' llegó al 100%", time: "hace 1 día" },
@@ -32,7 +36,7 @@ export function Header() {
   return (
     <header className="flex h-16 items-center justify-between gap-4 border-b border-border px-6">
       <div>
-        <p className="text-sm font-medium">{greetingText}, Andrés.</p>
+        <p className="text-sm font-medium">{greetingText}, {USER_FIRST_NAME}.</p>
         <p className="text-xs text-muted-foreground">Disciplina hoy. Libertad mañana.</p>
       </div>
 
@@ -69,12 +73,12 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <button>
               <Avatar>
-                <AvatarFallback>AC</AvatarFallback>
+                <AvatarFallback>{USER_INITIALS}</AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Andrés Contreras</DropdownMenuLabel>
+            <DropdownMenuLabel>{USER_FULL_NAME}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Perfil</DropdownMenuItem>
             <DropdownMenuItem>Configuración</DropdownMenuItem>
