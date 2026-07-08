@@ -17,10 +17,10 @@ export function LandingNav() {
         </nav>
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm" className="text-white/80 hover:bg-white/5 hover:text-white">
-            <Link href="/login">Iniciar sesión</Link>
+            <Link href="/unlock">Iniciar sesión</Link>
           </Button>
           <Button asChild variant="gold" size="sm">
-            <Link href="/login">Comenzar</Link>
+            <Link href="/unlock">Comenzar</Link>
           </Button>
         </div>
       </div>

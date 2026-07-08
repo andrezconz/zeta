@@ -15,7 +15,7 @@ export function FinalCta() {
           para decidir bien.
         </p>
         <Button asChild variant="gold" size="lg" className="mt-8">
-          <Link href="/login">Comenzar</Link>
+          <Link href="/unlock">Comenzar</Link>
         </Button>
       </div>
     </section>

@@ -1,5 +1,4 @@
 import { formatCurrency } from "@/lib/utils";
-import { holdings, holdingMarketValueCOP } from "@/lib/data/mock-data";
 
 const benefits = [
   "Todas tus inversiones",
@@ -11,8 +10,15 @@ const benefits = [
   "Patrimonio",
 ];
 
-const previewHoldings = holdings.slice(0, 5);
-const totalPreview = holdings.reduce((sum, h) => sum + holdingMarketValueCOP(h), 0);
+// Vista ilustrativa para la landing (no proviene de datos reales de ningún usuario).
+const previewHoldings = [
+  { id: "p1", ticker: "VT", asset: "Vanguard Total World Stock", valueCOP: 201_738_600 },
+  { id: "p2", ticker: "IVV", asset: "iShares Core S&P 500", valueCOP: 158_292_225 },
+  { id: "p3", ticker: "AAPL", asset: "Apple Inc.", valueCOP: 84_491_100 },
+  { id: "p4", ticker: "MSFT", asset: "Microsoft Corp.", valueCOP: 85_769_280 },
+  { id: "p5", ticker: "ECO", asset: "Ecopetrol S.A.", valueCOP: 6_048_000 },
+];
+const totalPreview = 842_331_405;
 
 export function DashboardPreview() {
   return (
@@ -53,7 +59,7 @@ export function DashboardPreview() {
                     </span>
                     <span className="text-white/80">{h.asset}</span>
                   </div>
-                  <span className="text-white/50">{formatCurrency(holdingMarketValueCOP(h), "COP")}</span>
+                  <span className="text-white/50">{formatCurrency(h.valueCOP, "COP")}</span>
                 </div>
               ))}
             </div>

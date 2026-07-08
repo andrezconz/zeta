@@ -6,63 +6,100 @@ largo plazo con calma y disciplina — sin apariencia de casino.
 
 > Lo importante no es controlar el mercado. Lo importante es controlar tus decisiones.
 
+Pensado para un solo usuario: no hay registro público ni multi-tenant. El
+acceso al dashboard se protege con una clave de sitio compartida (ver
+[Acceso](#acceso-al-dashboard)), y los datos viven en un proyecto de Supabase
+propio.
+
 ## Estado del proyecto
-
-Esta es la **Fase 1**: landing page completa y un dashboard funcional con
-datos simulados. Todavía no hay backend real conectado (ver
-[Conectar Supabase y Prisma](#conectar-supabase-y-prisma-cuando-tengas-credenciales)).
-
-### Módulos funcionales (Fase 1)
 
 - **Landing** (`/`): hero, preview del dashboard, por qué Fortis, filosofía
   estoica, proceso en 5 pasos.
-- **Login** (`/login`): funciona en modo demo (sin Supabase configurado, entra
-  directo al dashboard) o contra Supabase Auth si defines las variables de
-  entorno.
-- **Resumen** (`/dashboard`): KPIs de patrimonio, rentabilidad, dividendos y
-  cash; evolución vs. benchmarks; composición y objetivos activos.
-- **Portafolio** (`/dashboard/portafolio`): tabla ordenable/filtrable de
-  posiciones + distribución por tipo de activo y por broker.
-- **Riesgo** (`/dashboard/riesgo`): volatilidad, Sharpe, Sortino, drawdown,
-  beta, alpha, correlación, diversificación y VaR, con explicación en tooltip.
-- **Metas** (`/dashboard/metas`): timeline de objetivos con avance, capital
+- **Resumen** (`/dashboard`): patrimonio, rentabilidad, dividendos proyectados
+  y cash calculados desde tus posiciones reales; composición por activo;
+  objetivos activos.
+- **Portafolio** (`/dashboard/portafolio`): alta de cuentas de broker y
+  posiciones, tabla ordenable/filtrable, distribución por tipo de activo y
+  por broker — todo respaldado por Supabase.
+- **Metas** (`/dashboard/metas`): alta de metas, timeline con avance, capital
   requerido y proyección.
+- **Riesgo** (`/dashboard/riesgo`): panel de volatilidad, Sharpe, Sortino,
+  drawdown, beta, alpha, correlación, diversificación y VaR. **Ilustrativo**:
+  calcularlos de verdad requiere un histórico de precios diarios que todavía
+  no capturamos.
 - **Planeación** (`/dashboard/planeacion`): calculadoras de interés
-  compuesto, FIRE/independencia financiera, y retiro ajustado por inflación.
+  compuesto, FIRE/independencia financiera (usa tu patrimonio real) y retiro
+  ajustado por inflación.
+- **Mercados, Dividendos, Documentos, Alertas, Análisis, Configuración**:
+  navegables con pantalla "Próximamente" describiendo su alcance — pendientes
+  de esta fase.
 
-### Módulos en construcción (Fase 2)
+## Acceso al dashboard
 
-Mercados, Dividendos, Documentos, Alertas, Análisis histórico y
-Configuración ya están en la navegación (con una pantalla "Próximamente"
-describiendo su alcance), pendientes de implementación completa. El panel de
-IA integrada descrito en el brief original también queda para esta fase.
+No hay registro ni login de usuario: en su lugar, `/dashboard/*` está
+protegido por una única clave de sitio (`SITE_PASSWORD`) verificada en
+`src/proxy.ts` (el middleware de Next.js). Sin esa variable definida, el
+acceso queda abierto (útil en desarrollo local).
+
+1. Define `SITE_PASSWORD` en `.env.local` (o en las env vars de Netlify).
+2. Entra a `/unlock`, ingresa la clave; queda una cookie httpOnly válida por
+   30 días.
+
+Importante: esto protege las **páginas**, no la base de datos directamente.
+Por eso todas las consultas a Supabase pasan por Server Components/Server
+Actions usando la *service role key* (nunca se expone al navegador) — ver
+siguiente sección.
+
+## Conectar Supabase
+
+El dashboard necesita un proyecto de Supabase real para dejar de mostrar el
+aviso "Conecta Supabase para ver tus datos reales".
+
+1. Crea un proyecto en [supabase.com](https://supabase.com) (o usa el que ya
+   conectaste vía GitHub Integration).
+2. Las migraciones SQL viven en `supabase/migrations/` (tablas
+   `broker_accounts`, `holdings`, `goals`, con RLS habilitado y sin políticas
+   para `anon`/`authenticated` — solo la *service role key* tiene acceso).
+   Si usaste la integración de GitHub de Supabase, se aplican solas al hacer
+   push a la rama conectada. Si no, corre `supabase db push` con la CLI.
+3. Copia `.env.local.example` a `.env.local` y completa (Project Settings → API):
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY` — tiene acceso total e ignora RLS; **nunca**
+     debe llevar el prefijo `NEXT_PUBLIC_` ni usarse fuera del servidor.
+4. En Netlify (u otro hosting), agrega esas mismas variables más
+   `SITE_PASSWORD` en las variables de entorno del sitio.
+
+No hay Prisma ni ORM: las consultas usan `@supabase/supabase-js` directamente
+desde `src/lib/data/*.ts` (lecturas) y `src/lib/actions/*.ts` (Server Actions
+para crear/eliminar).
 
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 ·
 Radix UI (primitivas propias, estilo shadcn) · Framer Motion · Recharts ·
-TanStack Table · Zustand · next-themes · Prisma (schema listo) ·
-Supabase (Auth + Postgres, scaffolding listo).
+TanStack Table · Zustand · next-themes · Supabase (Postgres, sin Auth propio).
 
 ## Estructura del proyecto
 
 ```text
 /
-├── prisma/
-│   └── schema.prisma        # modelo de dominio (perfiles, brokers, holdings, metas...)
+├── supabase/
+│   └── migrations/          # SQL: broker_accounts, holdings, goals + RLS
 ├── src/
+│   ├── proxy.ts             # gate de SITE_PASSWORD para /dashboard/*
 │   ├── app/
 │   │   ├── page.tsx         # landing
-│   │   ├── login/
+│   │   ├── unlock/          # formulario de clave de sitio
 │   │   └── dashboard/       # layout (sidebar+header) + un folder por módulo
 │   ├── components/
 │   │   ├── ui/              # primitivas (button, card, table, tabs, tooltip...)
 │   │   ├── landing/         # secciones de la landing
 │   │   └── dashboard/       # sidebar, header, kpi-card, allocation-chart...
 │   ├── lib/
-│   │   ├── data/mock-data.ts  # datos simulados realistas
-│   │   ├── supabase/          # cliente browser/server (requiere env vars)
-│   │   └── prisma.ts
+│   │   ├── data/            # lecturas server-only (portfolio.ts, goals.ts)
+│   │   ├── actions/          # Server Actions (mutaciones, "use server")
+│   │   ├── supabase/admin.ts # cliente con service role key (solo servidor)
+│   │   └── data/mock-data.ts # solo lo ilustrativo (riesgo, benchmarks)
 │   └── store/ui-store.ts    # estado global (Zustand): sidebar, panel de IA
 └── package.json
 ```
@@ -71,31 +108,10 @@ Supabase (Auth + Postgres, scaffolding listo).
 
 | Comando           | Acción                                         |
 | :----------------- | :--------------------------------------------- |
-| `npm install`       | Instala dependencias (corre `prisma generate`) |
+| `npm install`       | Instala dependencias                           |
 | `npm run dev`       | Servidor local en `localhost:4321`             |
 | `npm run build`     | Build de producción                            |
 | `npm run lint`      | ESLint                                         |
-| `npm run db:push`   | Sincroniza el schema de Prisma con la base de datos |
-| `npm run db:studio` | Abre Prisma Studio                             |
-
-## Conectar Supabase y Prisma (cuando tengas credenciales)
-
-El dashboard funciona hoy con datos simulados
-(`src/lib/data/mock-data.ts`) para que la UI sea completamente navegable sin
-depender de infraestructura externa. Para conectar datos reales:
-
-1. Crea un proyecto en [supabase.com](https://supabase.com) (o usa uno existente).
-2. Copia `.env.local.example` a `.env.local`.
-3. Completa las variables directamente en `.env.local` (no las compartas en
-   chats ni las subas a git — el archivo ya está en `.gitignore`):
-   - `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API).
-   - `DATABASE_URL` (pooler, puerto 6543) y `DIRECT_URL` (directa, puerto 5432) (Project Settings → Database).
-4. Corre `npm run db:push` para crear las tablas definidas en `prisma/schema.prisma`.
-5. Reemplaza las lecturas de `src/lib/data/mock-data.ts` por consultas a
-   Prisma/Supabase módulo por módulo.
-
-Mientras estas variables no existan, `/login` opera en modo demo y el resto
-de la app sigue mostrando datos simulados.
 
 ## Licencia
 

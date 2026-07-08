@@ -10,6 +10,10 @@ export default function RiesgoPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Antes de preguntar cuánto puedes ganar, entiende cuánto podrías perder.
         </p>
+        <p className="mt-2 text-xs text-gold">
+          Valores ilustrativos: calcular estas métricas de verdad requiere un histórico de precios
+          diarios que todavía no capturamos (módulo Mercados, fase 2).
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

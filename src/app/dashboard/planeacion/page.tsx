@@ -3,8 +3,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompoundInterestCalculator } from "@/components/dashboard/planning/compound-interest-calculator";
 import { FireCalculator } from "@/components/dashboard/planning/fire-calculator";
 import { RetirementCalculator } from "@/components/dashboard/planning/retirement-calculator";
+import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import { listBrokerAccounts } from "@/lib/data/portfolio";
+import { holdingMarketValueCOP } from "@/lib/portfolio-math";
 
-export default function PlaneacionPage() {
+export const dynamic = "force-dynamic";
+
+export default async function PlaneacionPage() {
+  const patrimonioActual = isSupabaseConfigured
+    ? (await listBrokerAccounts())
+        .flatMap((a) => a.holdings)
+        .reduce((sum, h) => sum + holdingMarketValueCOP(h), 0)
+    : 0;
+
   return (
     <div className="space-y-8">
       <div>
@@ -29,7 +40,7 @@ export default function PlaneacionPage() {
               <CompoundInterestCalculator />
             </TabsContent>
             <TabsContent value="fire">
-              <FireCalculator />
+              <FireCalculator patrimonioActual={patrimonioActual} />
             </TabsContent>
             <TabsContent value="retirement">
               <RetirementCalculator />

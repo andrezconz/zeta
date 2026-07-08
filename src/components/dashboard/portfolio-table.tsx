@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   type ColumnDef,
   type SortingState,
@@ -14,7 +14,8 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency, formatPercent } from "@/lib/utils";
-import { holdings, holdingMarketValueCOP, holdingCostValueCOP } from "@/lib/data/mock-data";
+import { holdingMarketValueCOP, holdingCostValueCOP } from "@/lib/portfolio-math";
+import { deleteHoldingAction } from "@/lib/actions/portfolio-actions";
 import type { Holding } from "@/lib/types";
 
 interface Row {
@@ -26,21 +27,22 @@ interface Row {
   weight: number;
 }
 
-const totalMarketValue = holdings.reduce((sum, h) => sum + holdingMarketValueCOP(h), 0);
-
-const rows: Row[] = holdings.map((holding) => {
-  const marketValue = holdingMarketValueCOP(holding);
-  const costValue = holdingCostValueCOP(holding);
-  const gain = marketValue - costValue;
-  return {
-    holding,
-    marketValue,
-    costValue,
-    gain,
-    gainPct: (gain / costValue) * 100,
-    weight: (marketValue / totalMarketValue) * 100,
-  };
-});
+function buildRows(holdings: Holding[]): Row[] {
+  const totalMarketValue = holdings.reduce((sum, h) => sum + holdingMarketValueCOP(h), 0);
+  return holdings.map((holding) => {
+    const marketValue = holdingMarketValueCOP(holding);
+    const costValue = holdingCostValueCOP(holding);
+    const gain = marketValue - costValue;
+    return {
+      holding,
+      marketValue,
+      costValue,
+      gain,
+      gainPct: costValue > 0 ? (gain / costValue) * 100 : 0,
+      weight: totalMarketValue > 0 ? (marketValue / totalMarketValue) * 100 : 0,
+    };
+  });
+}
 
 const columns: ColumnDef<Row>[] = [
   {
@@ -117,11 +119,25 @@ const columns: ColumnDef<Row>[] = [
     cell: ({ row }) =>
       row.original.holding.dividendYield > 0 ? `${row.original.holding.dividendYield.toFixed(1)}%` : "—",
   },
+  {
+    id: "actions",
+    header: "",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <form action={deleteHoldingAction}>
+        <input type="hidden" name="id" value={row.original.holding.id} />
+        <button type="submit" className="text-xs text-muted-foreground hover:text-danger">
+          Eliminar
+        </button>
+      </form>
+    ),
+  },
 ];
 
-export function PortfolioTable() {
+export function PortfolioTable({ holdings }: { holdings: Holding[] }) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "weight", desc: true }]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const rows = useMemo(() => buildRows(holdings), [holdings]);
 
   const table = useReactTable({
     data: rows,

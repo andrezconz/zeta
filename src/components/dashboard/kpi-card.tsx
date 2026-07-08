@@ -6,7 +6,6 @@ import { formatCurrency, formatPercent, cn } from "@/lib/utils";
 import type { Kpi } from "@/lib/types";
 
 export function KpiCard({ kpi }: { kpi: Kpi }) {
-  const positive = kpi.change >= 0;
   const displayValue =
     kpi.format === "currency" ? formatCurrency(kpi.value, "COP") : formatPercent(kpi.value);
 
@@ -15,9 +14,11 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
       <div className="p-5 pb-0">
         <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
         <p className="mt-2 font-display text-2xl text-foreground">{displayValue}</p>
-        <p className={cn("mt-1 text-xs", positive ? "text-success" : "text-danger")}>
-          {formatPercent(kpi.change)} este mes
-        </p>
+        {kpi.change !== undefined && (
+          <p className={cn("mt-1 text-xs", kpi.change >= 0 ? "text-success" : "text-danger")}>
+            {formatPercent(kpi.change)} este mes
+          </p>
+        )}
       </div>
       <div className="h-14 w-full">
         <ResponsiveContainer width="100%" height="100%">

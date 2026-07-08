@@ -4,11 +4,8 @@ import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { inputClass, labelClass } from "./field-styles";
-import { kpis } from "@/lib/data/mock-data";
 
-const patrimonioActual = kpis.find((k) => k.id === "patrimonio")?.value ?? 0;
-
-export function FireCalculator() {
+export function FireCalculator({ patrimonioActual = 0 }: { patrimonioActual?: number }) {
   const [gastoMensual, setGastoMensual] = useState(8_000_000);
   const [tasaRetiro, setTasaRetiro] = useState(4);
   const [aporteMensual, setAporteMensual] = useState(4_000_000);
@@ -30,7 +27,7 @@ export function FireCalculator() {
       monthsToFire: months % 12,
       reached: value >= fireNumber && months < maxMonths,
     };
-  }, [gastoMensual, tasaRetiro, aporteMensual, retorno]);
+  }, [gastoMensual, tasaRetiro, aporteMensual, retorno, patrimonioActual]);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1fr]">

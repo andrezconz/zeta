@@ -1,24 +1,26 @@
 export type AssetClass = "ETF" | "Acciones" | "Bonos" | "Fondos" | "Crypto" | "Cash";
 
-export type Broker =
-  | "Interactive Brokers"
-  | "Tyba"
-  | "Trii"
-  | "Bancolombia"
-  | "Fintual"
-  | "Nu";
+export const ASSET_CLASSES: AssetClass[] = ["ETF", "Acciones", "Bonos", "Fondos", "Crypto", "Cash"];
 
 export interface Holding {
   id: string;
+  brokerAccountId: string;
   asset: string;
   ticker: string;
   type: AssetClass;
-  broker: Broker;
+  broker: string;
   quantity: number;
   avgCost: number;
   currentPrice: number;
   currency: "COP" | "USD";
   dividendYield: number;
+}
+
+export interface BrokerAccount {
+  id: string;
+  broker: string;
+  label: string | null;
+  holdings: Holding[];
 }
 
 export interface KpiSeriesPoint {
@@ -31,7 +33,9 @@ export interface Kpi {
   label: string;
   value: number;
   format: "currency" | "percent";
-  change: number;
+  /** Cambio vs. el período anterior. Omitir si no hay un histórico real con qué compararlo. */
+  change?: number;
+  /** Serie para la mini-gráfica. Puede ser ilustrativa si aún no existe un histórico real. */
   series: KpiSeriesPoint[];
 }
 

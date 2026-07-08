@@ -67,7 +67,7 @@ export function Hero() {
           className="mt-10 flex flex-col gap-3 sm:flex-row"
         >
           <Button asChild variant="gold" size="lg">
-            <Link href="/login">Comenzar</Link>
+            <Link href="/unlock">Comenzar</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="border-white/15 text-white hover:bg-white/5">
             <Link href="/dashboard">Ver demo</Link>
