@@ -16,11 +16,8 @@ export function LandingNav() {
           <a href="#proceso" className="transition-colors hover:text-white">Cómo funciona</a>
         </nav>
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="sm" className="text-white/80 hover:bg-white/5 hover:text-white">
-            <Link href="/unlock">Iniciar sesión</Link>
-          </Button>
           <Button asChild variant="gold" size="sm">
-            <Link href="/unlock">Comenzar</Link>
+            <Link href="/dashboard">Entrar</Link>
           </Button>
         </div>
       </div>

@@ -62,3 +62,29 @@ export interface HistoricalPoint {
   sp500: number;
   msciWorld: number;
 }
+
+export type CashTransactionKind = "ingreso" | "gasto";
+
+export interface CashTransaction {
+  id: string;
+  kind: CashTransactionKind;
+  category: string;
+  description: string | null;
+  amount: number;
+  transactionDate: string;
+}
+
+export const EXPENSE_CATEGORY_SUGGESTIONS = [
+  "Servicios",
+  "Mercado",
+  "Compras",
+  "Pagos extraordinarios",
+  "Transporte",
+  "Salud",
+  "Entretenimiento",
+  "Educación",
+  "Arriendo",
+  "Otro",
+];
+
+export const INCOME_CATEGORY_SUGGESTIONS = ["Salario", "Freelance", "Arriendo recibido", "Rendimientos", "Otro"];

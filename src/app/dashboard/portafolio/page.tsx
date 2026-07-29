@@ -3,9 +3,9 @@ import { AllocationChart } from "@/components/dashboard/allocation-chart";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
 import { AddBrokerAccountForm } from "@/components/dashboard/portfolio/add-broker-account-form";
 import { AddHoldingForm } from "@/components/dashboard/portfolio/add-holding-form";
-import { SupabaseSetupNotice } from "@/components/dashboard/supabase-setup-notice";
+import { DbSetupNotice } from "@/components/dashboard/db-setup-notice";
 import { deleteBrokerAccountAction } from "@/lib/actions/portfolio-actions";
-import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import { isDbConfigured } from "@/lib/db/client";
 import { listBrokerAccounts } from "@/lib/data/portfolio";
 import { holdingMarketValueCOP } from "@/lib/portfolio-math";
 import { ASSET_CLASSES } from "@/lib/types";
@@ -13,7 +13,7 @@ import { ASSET_CLASSES } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function PortafolioPage() {
-  if (!isSupabaseConfigured) {
+  if (!isDbConfigured) {
     return (
       <div className="space-y-8">
         <div>
@@ -22,7 +22,7 @@ export default async function PortafolioPage() {
             Todas tus posiciones, en un solo lugar, con su peso real dentro del patrimonio.
           </p>
         </div>
-        <SupabaseSetupNotice />
+        <DbSetupNotice />
       </div>
     );
   }

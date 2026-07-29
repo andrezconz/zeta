@@ -4,8 +4,8 @@ import { formatCurrency } from "@/lib/utils";
 import { listGoals } from "@/lib/data/goals";
 import { deleteGoalAction } from "@/lib/actions/goals-actions";
 import { AddGoalForm } from "@/components/dashboard/goals/add-goal-form";
-import { SupabaseSetupNotice } from "@/components/dashboard/supabase-setup-notice";
-import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import { DbSetupNotice } from "@/components/dashboard/db-setup-notice";
+import { isDbConfigured } from "@/lib/db/client";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ function monthsUntil(dateStr: string) {
 }
 
 export default async function MetasPage() {
-  if (!isSupabaseConfigured) {
+  if (!isDbConfigured) {
     return (
       <div className="space-y-8">
         <div>
@@ -28,7 +28,7 @@ export default async function MetasPage() {
             Cada objetivo con su capital requerido, avance y fecha. Sin adivinar.
           </p>
         </div>
-        <SupabaseSetupNotice />
+        <DbSetupNotice />
       </div>
     );
   }

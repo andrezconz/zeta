@@ -1,7 +1,8 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { db } from "@/lib/db/client";
 
 function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
@@ -18,24 +19,25 @@ export async function createGoalAction(formData: FormData) {
   if (!name) throw new Error("El nombre de la meta es obligatorio.");
   if (!targetDate) throw new Error("La fecha objetivo es obligatoria.");
 
-  const supabase = supabaseAdmin();
-  const { error } = await supabase.from("goals").insert({
-    name,
-    target_amount: num(formData, "targetAmount"),
-    current_amount: num(formData, "currentAmount"),
-    target_date: targetDate,
-    monthly_required: num(formData, "monthlyRequired"),
+  await db().execute({
+    sql: `insert into goals (id, name, target_amount, current_amount, target_date, monthly_required)
+          values (?, ?, ?, ?, ?, ?)`,
+    args: [
+      randomUUID(),
+      name,
+      num(formData, "targetAmount"),
+      num(formData, "currentAmount"),
+      targetDate,
+      num(formData, "monthlyRequired"),
+    ],
   });
-  if (error) throw new Error(`No se pudo crear la meta: ${error.message}`);
 
   revalidatePath("/dashboard", "layout");
 }
 
 export async function deleteGoalAction(formData: FormData) {
   const id = str(formData, "id");
-  const supabase = supabaseAdmin();
-  const { error } = await supabase.from("goals").delete().eq("id", id);
-  if (error) throw new Error(`No se pudo eliminar la meta: ${error.message}`);
+  await db().execute({ sql: "delete from goals where id = ?", args: [id] });
 
   revalidatePath("/dashboard", "layout");
 }

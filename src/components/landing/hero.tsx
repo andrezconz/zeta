@@ -67,10 +67,10 @@ export function Hero() {
           className="mt-10 flex flex-col gap-3 sm:flex-row"
         >
           <Button asChild variant="gold" size="lg">
-            <Link href="/unlock">Comenzar</Link>
+            <Link href="/dashboard">Entrar al dashboard</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="border-white/15 text-white hover:bg-white/5">
-            <Link href="/dashboard">Ver demo</Link>
+            <a href="#por-que-fortis">Ver más</a>
           </Button>
         </motion.div>
       </div>

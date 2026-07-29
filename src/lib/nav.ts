@@ -10,6 +10,7 @@ import {
   FileText,
   Bell,
   Settings,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,6 +24,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { label: "Resumen", href: "/dashboard", icon: LayoutGrid },
   { label: "Portafolio", href: "/dashboard/portafolio", icon: Briefcase },
+  { label: "Finanzas", href: "/dashboard/finanzas", icon: Wallet },
   { label: "Riesgo", href: "/dashboard/riesgo", icon: ShieldAlert },
   { label: "Mercados", href: "/dashboard/mercados", icon: Globe, phase2: true },
   { label: "Dividendos", href: "/dashboard/dividendos", icon: Coins, phase2: true },

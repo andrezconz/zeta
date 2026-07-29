@@ -1,7 +1,8 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { db } from "@/lib/db/client";
 import { ASSET_CLASSES, type AssetClass } from "@/lib/types";
 
 function revalidateDashboard() {
@@ -22,20 +23,19 @@ export async function createBrokerAccountAction(formData: FormData) {
   const label = str(formData, "label");
   if (!broker) throw new Error("El nombre del broker es obligatorio.");
 
-  const supabase = supabaseAdmin();
-  const { error } = await supabase
-    .from("broker_accounts")
-    .insert({ broker, label: label || null });
-  if (error) throw new Error(`No se pudo crear la cuenta: ${error.message}`);
+  await db().execute({
+    sql: "insert into broker_accounts (id, broker, label) values (?, ?, ?)",
+    args: [randomUUID(), broker, label || null],
+  });
 
   revalidateDashboard();
 }
 
 export async function deleteBrokerAccountAction(formData: FormData) {
   const id = str(formData, "id");
-  const supabase = supabaseAdmin();
-  const { error } = await supabase.from("broker_accounts").delete().eq("id", id);
-  if (error) throw new Error(`No se pudo eliminar la cuenta: ${error.message}`);
+  const client = db();
+  await client.execute({ sql: "delete from holdings where broker_account_id = ?", args: [id] });
+  await client.execute({ sql: "delete from broker_accounts where id = ?", args: [id] });
 
   revalidateDashboard();
 }
@@ -47,28 +47,30 @@ export async function createHoldingAction(formData: FormData) {
   const currency = str(formData, "currency");
   if (currency !== "COP" && currency !== "USD") throw new Error("Moneda inválida.");
 
-  const supabase = supabaseAdmin();
-  const { error } = await supabase.from("holdings").insert({
-    broker_account_id: brokerAccountId,
-    asset: str(formData, "asset"),
-    ticker: str(formData, "ticker").toUpperCase(),
-    type,
-    currency,
-    quantity: num(formData, "quantity"),
-    avg_cost: num(formData, "avgCost"),
-    current_price: num(formData, "currentPrice"),
-    dividend_yield: num(formData, "dividendYield"),
+  await db().execute({
+    sql: `insert into holdings
+            (id, broker_account_id, asset, ticker, type, currency, quantity, avg_cost, current_price, dividend_yield)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      randomUUID(),
+      brokerAccountId,
+      str(formData, "asset"),
+      str(formData, "ticker").toUpperCase(),
+      type,
+      currency,
+      num(formData, "quantity"),
+      num(formData, "avgCost"),
+      num(formData, "currentPrice"),
+      num(formData, "dividendYield"),
+    ],
   });
-  if (error) throw new Error(`No se pudo agregar la posición: ${error.message}`);
 
   revalidateDashboard();
 }
 
 export async function deleteHoldingAction(formData: FormData) {
   const id = str(formData, "id");
-  const supabase = supabaseAdmin();
-  const { error } = await supabase.from("holdings").delete().eq("id", id);
-  if (error) throw new Error(`No se pudo eliminar la posición: ${error.message}`);
+  await db().execute({ sql: "delete from holdings where id = ?", args: [id] });
 
   revalidateDashboard();
 }

@@ -1,59 +1,45 @@
 import "server-only";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { db } from "@/lib/db/client";
 import type { BrokerAccount, Holding } from "@/lib/types";
 
-interface HoldingDbRow {
-  id: string;
-  broker_account_id: string;
-  asset: string;
-  ticker: string;
-  type: Holding["type"];
-  currency: Holding["currency"];
-  quantity: number;
-  avg_cost: number;
-  current_price: number;
-  dividend_yield: number;
-}
-
-interface BrokerAccountDbRow {
-  id: string;
-  broker: string;
-  label: string | null;
-  holdings: HoldingDbRow[];
-}
-
-function mapHolding(row: HoldingDbRow, broker: string): Holding {
-  return {
-    id: row.id,
-    brokerAccountId: row.broker_account_id,
-    asset: row.asset,
-    ticker: row.ticker,
-    type: row.type,
-    broker,
-    quantity: Number(row.quantity),
-    avgCost: Number(row.avg_cost),
-    currentPrice: Number(row.current_price),
-    currency: row.currency,
-    dividendYield: Number(row.dividend_yield),
-  };
-}
-
 export async function listBrokerAccounts(): Promise<BrokerAccount[]> {
-  const supabase = supabaseAdmin();
-  const { data, error } = await supabase
-    .from("broker_accounts")
-    .select("id, broker, label, holdings(*)")
-    .order("created_at", { ascending: true })
-    .returns<BrokerAccountDbRow[]>();
+  const client = db();
+  const [accountsResult, holdingsResult] = await Promise.all([
+    client.execute("select id, broker, label from broker_accounts order by created_at asc"),
+    client.execute("select * from holdings order by updated_at asc"),
+  ]);
 
-  if (error) throw new Error(`No se pudieron cargar las cuentas: ${error.message}`);
+  const holdingsByAccount = new Map<string, Holding[]>();
+  for (const row of holdingsResult.rows) {
+    const brokerAccountId = String(row.broker_account_id);
+    const list = holdingsByAccount.get(brokerAccountId) ?? [];
+    list.push({
+      id: String(row.id),
+      brokerAccountId,
+      asset: String(row.asset),
+      ticker: String(row.ticker),
+      type: row.type as Holding["type"],
+      broker: "",
+      quantity: Number(row.quantity),
+      avgCost: Number(row.avg_cost),
+      currentPrice: Number(row.current_price),
+      currency: row.currency as Holding["currency"],
+      dividendYield: Number(row.dividend_yield),
+    });
+    holdingsByAccount.set(brokerAccountId, list);
+  }
 
-  return (data ?? []).map((account) => ({
-    id: account.id,
-    broker: account.broker,
-    label: account.label,
-    holdings: (account.holdings ?? []).map((h) => mapHolding(h, account.broker)),
-  }));
+  return accountsResult.rows.map((row) => {
+    const id = String(row.id);
+    const broker = String(row.broker);
+    const holdings = (holdingsByAccount.get(id) ?? []).map((h) => ({ ...h, broker }));
+    return {
+      id,
+      broker,
+      label: row.label ? String(row.label) : null,
+      holdings,
+    };
+  });
 }
 
 export async function listHoldingsFlat(): Promise<Holding[]> {

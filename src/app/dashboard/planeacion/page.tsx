@@ -3,14 +3,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompoundInterestCalculator } from "@/components/dashboard/planning/compound-interest-calculator";
 import { FireCalculator } from "@/components/dashboard/planning/fire-calculator";
 import { RetirementCalculator } from "@/components/dashboard/planning/retirement-calculator";
-import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import { isDbConfigured } from "@/lib/db/client";
 import { listBrokerAccounts } from "@/lib/data/portfolio";
 import { holdingMarketValueCOP } from "@/lib/portfolio-math";
 
 export const dynamic = "force-dynamic";
 
 export default async function PlaneacionPage() {
-  const patrimonioActual = isSupabaseConfigured
+  const patrimonioActual = isDbConfigured
     ? (await listBrokerAccounts())
         .flatMap((a) => a.holdings)
         .reduce((sum, h) => sum + holdingMarketValueCOP(h), 0)
