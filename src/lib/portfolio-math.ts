@@ -13,6 +13,16 @@ function daysBetween(from: Date, to: Date): number {
   return Math.max(0, Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
+/** Valor actual de un Fondo, prorrateando la rentabilidad anual informada
+ * según los días realmente transcurridos desde la inversión (no se aplica
+ * de golpe la rentabilidad de un año completo si aún no ha pasado un año). */
+function fundCurrentValue(h: Holding): number {
+  const invested = h.investedAmount ?? 0;
+  const rate = h.annualReturn ?? 0;
+  const elapsed = h.startDate ? daysBetween(new Date(h.startDate), new Date()) : 0;
+  return invested * Math.pow(1 + rate / 100, elapsed / 365);
+}
+
 /** Plazo total del CDT en días, calculado entre fecha de apertura y de
  * cierre. Si por algún motivo falta la fecha de cierre, usa termDays como
  * respaldo (registros antiguos). */
@@ -43,9 +53,7 @@ export function holdingCostValueCOP(h: Holding): number {
 
 export function holdingMarketValueCOP(h: Holding): number {
   if (h.type === "Fondos") {
-    const invested = h.investedAmount ?? 0;
-    const rate = h.annualReturn ?? 0;
-    return toCOP(invested * (1 + rate / 100), h.currency);
+    return toCOP(fundCurrentValue(h), h.currency);
   }
   if (h.type === "CDT") {
     return toCOP(cdtAccruedValue(h), h.currency);
@@ -53,14 +61,15 @@ export function holdingMarketValueCOP(h: Holding): number {
   return toCOP(h.quantity * h.currentPrice, h.currency);
 }
 
-/** Proyección de un Fondo si se mantiene la rentabilidad informada de cada
- * periodo, en la moneda original del holding (sin convertir a COP). */
+/** Proyección de un Fondo desde su valor actual (ya prorrateado), si se
+ * mantiene la rentabilidad informada de cada periodo hacia adelante. En la
+ * moneda original del holding (sin convertir a COP). */
 export function fundProjections(h: Holding): { month: number; semester: number; year: number } {
-  const invested = h.investedAmount ?? 0;
+  const current = fundCurrentValue(h);
   return {
-    month: invested * (1 + (h.monthlyReturn ?? 0) / 100),
-    semester: invested * (1 + (h.semesterReturn ?? 0) / 100),
-    year: invested * (1 + (h.annualReturn ?? 0) / 100),
+    month: current * (1 + (h.monthlyReturn ?? 0) / 100),
+    semester: current * (1 + (h.semesterReturn ?? 0) / 100),
+    year: current * (1 + (h.annualReturn ?? 0) / 100),
   };
 }
 

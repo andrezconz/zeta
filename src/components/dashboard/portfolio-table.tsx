@@ -57,7 +57,9 @@ const columns: ColumnDef<Row>[] = [
           <p className="text-xs text-muted-foreground">{h.ticker}</p>
           {h.type === "Fondos" && (
             <p className="text-xs text-gold">
-              Proy. año: {formatCurrency(fundProjections(h).year, h.currency)}
+              Proy. mes {formatCurrency(fundProjections(h).month, h.currency)} · sem{" "}
+              {formatCurrency(fundProjections(h).semester, h.currency)} · año{" "}
+              {formatCurrency(fundProjections(h).year, h.currency)}
             </p>
           )}
           {h.type === "CDT" && (
