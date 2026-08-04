@@ -1,4 +1,4 @@
-import type { HistoricalPoint, RiskMetric } from "@/lib/types";
+import type { RiskMetric } from "@/lib/types";
 
 const monthLabels = [
   "Ago", "Sep", "Oct", "Nov", "Dic", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul",
@@ -81,21 +81,3 @@ export const riskMetrics: RiskMetric[] = [
     tone: "warning",
   },
 ];
-
-export const historical: HistoricalPoint[] = (() => {
-  const points: HistoricalPoint[] = [];
-  let p = 100;
-  let sp = 100;
-  let msci = 100;
-  const years = ["2020", "2021", "2022", "2023", "2024", "2025"];
-  const portfolioGrowth = [0.14, 0.19, -0.09, 0.16, 0.15, 0.11];
-  const spGrowth = [0.16, 0.27, -0.19, 0.24, 0.23, 0.09];
-  const msciGrowth = [0.14, 0.2, -0.18, 0.2, 0.17, 0.08];
-  years.forEach((year, i) => {
-    p *= 1 + portfolioGrowth[i];
-    sp *= 1 + spGrowth[i];
-    msci *= 1 + msciGrowth[i];
-    points.push({ date: year, portfolio: Math.round(p), sp500: Math.round(sp), msciWorld: Math.round(msci) });
-  });
-  return points;
-})();

@@ -12,6 +12,7 @@ import { listGoals } from "@/lib/data/goals";
 import { listCashTransactions } from "@/lib/data/finances";
 import { holdingMarketValueCOP, holdingCostValueCOP } from "@/lib/portfolio-math";
 import { illustrativeTrend } from "@/lib/data/mock-data";
+import { buildWealthProjection } from "@/lib/wealth-projection";
 import { formatCurrency } from "@/lib/utils";
 import { ASSET_CLASSES, type Kpi } from "@/lib/types";
 
@@ -97,6 +98,12 @@ export default async function DashboardPage() {
     value: holdings.filter((h) => h.type === type).reduce((sum, h) => sum + holdingMarketValueCOP(h), 0),
   })).filter((d) => d.value > 0);
 
+  const primaryGoal =
+    goals.length > 0
+      ? [...goals].sort((a, b) => new Date(b.targetDate).getTime() - new Date(a.targetDate).getTime())[0]
+      : null;
+  const projectionData = buildWealthProjection(patrimonioNetoTotal, primaryGoal);
+
   return (
     <div className="space-y-8">
       <div>
@@ -139,13 +146,15 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Evolución del patrimonio vs. benchmarks</CardTitle>
+            <CardTitle>Proyección hacia tu meta</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Curva ilustrativa: todavía no llevamos un histórico diario real de tu patrimonio.
+              {primaryGoal
+                ? `Lo que necesitas para llegar a "${primaryGoal.name}" en ${new Date(primaryGoal.targetDate).getFullYear()}, vs. crecer solo a tasas históricas de referencia (sin aportes adicionales).`
+                : "Agrega una meta para ver la trayectoria que necesitas. Por ahora, así crecería tu patrimonio a tasas históricas de referencia."}
             </p>
           </CardHeader>
           <CardContent>
-            <HistoricalChart />
+            <HistoricalChart data={projectionData} goalName={primaryGoal?.name ?? null} />
           </CardContent>
         </Card>
 

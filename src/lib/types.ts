@@ -72,13 +72,6 @@ export interface Goal {
   monthlyRequired: number;
 }
 
-export interface HistoricalPoint {
-  date: string;
-  portfolio: number;
-  sp500: number;
-  msciWorld: number;
-}
-
 export type CashTransactionKind = "ingreso" | "gasto";
 
 export interface CashTransaction {
