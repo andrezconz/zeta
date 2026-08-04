@@ -23,6 +23,11 @@ function optionalStr(formData: FormData, key: string): string | null {
   return value || null;
 }
 
+function daysBetween(from: string, to: string): number {
+  const days = (new Date(to).getTime() - new Date(from).getTime()) / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.round(days));
+}
+
 export async function createBrokerAccountAction(formData: FormData) {
   const broker = str(formData, "broker");
   const label = str(formData, "label");
@@ -54,12 +59,18 @@ export async function createHoldingAction(formData: FormData) {
 
   const isFondo = type === "Fondos";
   const isCdt = type === "CDT";
+  const startDate = optionalStr(formData, "startDate");
+  const closeDate = isCdt ? optionalStr(formData, "closeDate") : null;
+  if (isCdt && closeDate && startDate && new Date(closeDate) <= new Date(startDate)) {
+    throw new Error("La fecha de cierre debe ser posterior a la fecha de apertura.");
+  }
 
   await db().execute({
     sql: `insert into holdings
             (id, broker_account_id, asset, ticker, type, currency, quantity, avg_cost, current_price, dividend_yield,
-             invested_amount, monthly_return, semester_return, annual_return, term_days, effective_annual_rate, start_date)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             invested_amount, monthly_return, semester_return, annual_return, term_days, effective_annual_rate,
+             start_date, close_date)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       randomUUID(),
       brokerAccountId,
@@ -75,9 +86,10 @@ export async function createHoldingAction(formData: FormData) {
       isFondo ? num(formData, "monthlyReturn") : null,
       isFondo ? num(formData, "semesterReturn") : null,
       isFondo ? num(formData, "annualReturn") : null,
-      isCdt ? Math.round(num(formData, "termDays")) : null,
+      isCdt && startDate && closeDate ? daysBetween(startDate, closeDate) : null,
       isCdt ? num(formData, "effectiveAnnualRate") : null,
-      isFondo || isCdt ? optionalStr(formData, "startDate") : null,
+      isFondo || isCdt ? startDate : null,
+      closeDate,
     ],
   });
 

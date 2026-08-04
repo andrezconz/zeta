@@ -62,7 +62,8 @@ const columns: ColumnDef<Row>[] = [
           )}
           {h.type === "CDT" && (
             <p className="text-xs text-gold">
-              Vence en {h.termDays} días · valor: {formatCurrency(cdtMaturityValue(h), h.currency)}
+              Vence: {h.closeDate ? new Date(h.closeDate).toLocaleDateString("es-CO") : "—"} · valor:{" "}
+              {formatCurrency(cdtMaturityValue(h), h.currency)}
             </p>
           )}
         </div>

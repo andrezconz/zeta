@@ -23,11 +23,13 @@ export interface Holding {
   monthlyReturn: number | null;
   semesterReturn: number | null;
   annualReturn: number | null;
-  /** Plazo del CDT en días y su tasa efectiva anual (%). */
+  /** Tasa efectiva anual del CDT (%). El plazo se deriva de startDate → closeDate. */
   termDays: number | null;
   effectiveAnnualRate: number | null;
   /** Fecha de apertura/inversión (Fondos y CDT). */
   startDate: string | null;
+  /** Fecha de cierre/vencimiento del CDT. */
+  closeDate: string | null;
 }
 
 export interface BrokerAccount {

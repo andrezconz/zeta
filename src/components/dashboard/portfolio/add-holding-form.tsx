@@ -92,8 +92,8 @@ export function AddHoldingForm({ brokerAccountId }: { brokerAccountId: string })
               <input name="startDate" type="date" required className={fieldClass} />
             </div>
             <div>
-              <label className={labelClass}>Plazo (días)</label>
-              <input name="termDays" type="number" step="1" required className={fieldClass} />
+              <label className={labelClass}>Fecha de cierre</label>
+              <input name="closeDate" type="date" required className={fieldClass} />
             </div>
             <div>
               <label className={labelClass}>Tasa EA (%)</label>

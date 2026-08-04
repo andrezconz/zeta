@@ -36,6 +36,7 @@ export async function listBrokerAccounts(): Promise<BrokerAccount[]> {
       termDays: nullableNumber(row.term_days),
       effectiveAnnualRate: nullableNumber(row.effective_annual_rate),
       startDate: row.start_date ? String(row.start_date) : null,
+      closeDate: row.close_date ? String(row.close_date) : null,
     });
     holdingsByAccount.set(brokerAccountId, list);
   }
