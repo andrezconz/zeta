@@ -14,7 +14,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCurrency, formatPercent } from "@/lib/utils";
-import { holdingMarketValueCOP, holdingCostValueCOP } from "@/lib/portfolio-math";
+import { holdingMarketValueCOP, holdingCostValueCOP, fundProjections, cdtMaturityValue } from "@/lib/portfolio-math";
 import { deleteHoldingAction } from "@/lib/actions/portfolio-actions";
 import type { Holding } from "@/lib/types";
 
@@ -49,12 +49,25 @@ const columns: ColumnDef<Row>[] = [
     id: "asset",
     header: "Activo",
     accessorFn: (r) => r.holding.asset,
-    cell: ({ row }) => (
-      <div>
-        <p className="font-medium text-foreground">{row.original.holding.asset}</p>
-        <p className="text-xs text-muted-foreground">{row.original.holding.ticker}</p>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const h = row.original.holding;
+      return (
+        <div>
+          <p className="font-medium text-foreground">{h.asset}</p>
+          <p className="text-xs text-muted-foreground">{h.ticker}</p>
+          {h.type === "Fondos" && (
+            <p className="text-xs text-gold">
+              Proy. año: {formatCurrency(fundProjections(h).year, h.currency)}
+            </p>
+          )}
+          {h.type === "CDT" && (
+            <p className="text-xs text-gold">
+              Vence en {h.termDays} días · valor: {formatCurrency(cdtMaturityValue(h), h.currency)}
+            </p>
+          )}
+        </div>
+      );
+    },
   },
   {
     id: "type",
@@ -71,20 +84,34 @@ const columns: ColumnDef<Row>[] = [
     id: "quantity",
     header: "Cantidad",
     accessorFn: (r) => r.holding.quantity,
-    cell: ({ row }) =>
-      row.original.holding.quantity.toLocaleString("es-CO", { maximumFractionDigits: 4 }),
+    cell: ({ row }) => {
+      const h = row.original.holding;
+      if (h.type === "Fondos" || h.type === "CDT") return "—";
+      return h.quantity.toLocaleString("es-CO", { maximumFractionDigits: 4 });
+    },
   },
   {
     id: "avgCost",
-    header: "Costo promedio",
-    accessorFn: (r) => r.holding.avgCost,
-    cell: ({ row }) => formatCurrency(row.original.holding.avgCost, row.original.holding.currency),
+    header: "Costo / Invertido",
+    accessorFn: (r) => r.costValue,
+    cell: ({ row }) => {
+      const h = row.original.holding;
+      if (h.type === "Fondos" || h.type === "CDT") {
+        return formatCurrency(h.investedAmount ?? 0, h.currency);
+      }
+      return formatCurrency(h.avgCost, h.currency);
+    },
   },
   {
     id: "currentPrice",
-    header: "Precio actual",
+    header: "Precio / Tasa",
     accessorFn: (r) => r.holding.currentPrice,
-    cell: ({ row }) => formatCurrency(row.original.holding.currentPrice, row.original.holding.currency),
+    cell: ({ row }) => {
+      const h = row.original.holding;
+      if (h.type === "Fondos") return `Rent. año ${(h.annualReturn ?? 0).toFixed(1)}%`;
+      if (h.type === "CDT") return `EA ${(h.effectiveAnnualRate ?? 0).toFixed(1)}%`;
+      return formatCurrency(h.currentPrice, h.currency);
+    },
   },
   {
     id: "gain",

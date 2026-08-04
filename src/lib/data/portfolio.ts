@@ -2,6 +2,10 @@ import "server-only";
 import { db } from "@/lib/db/client";
 import type { BrokerAccount, Holding } from "@/lib/types";
 
+function nullableNumber(value: unknown): number | null {
+  return value === null || value === undefined ? null : Number(value);
+}
+
 export async function listBrokerAccounts(): Promise<BrokerAccount[]> {
   const client = db();
   const [accountsResult, holdingsResult] = await Promise.all([
@@ -25,6 +29,13 @@ export async function listBrokerAccounts(): Promise<BrokerAccount[]> {
       currentPrice: Number(row.current_price),
       currency: row.currency as Holding["currency"],
       dividendYield: Number(row.dividend_yield),
+      investedAmount: nullableNumber(row.invested_amount),
+      monthlyReturn: nullableNumber(row.monthly_return),
+      semesterReturn: nullableNumber(row.semester_return),
+      annualReturn: nullableNumber(row.annual_return),
+      termDays: nullableNumber(row.term_days),
+      effectiveAnnualRate: nullableNumber(row.effective_annual_rate),
+      startDate: row.start_date ? String(row.start_date) : null,
     });
     holdingsByAccount.set(brokerAccountId, list);
   }

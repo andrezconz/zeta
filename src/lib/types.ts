@@ -1,6 +1,9 @@
-export type AssetClass = "ETF" | "Acciones" | "Bonos" | "Fondos" | "Crypto" | "Cash";
+export type AssetClass = "ETF" | "Acciones" | "Bonos" | "Fondos" | "Crypto" | "Cash" | "CDT";
 
-export const ASSET_CLASSES: AssetClass[] = ["ETF", "Acciones", "Bonos", "Fondos", "Crypto", "Cash"];
+export const ASSET_CLASSES: AssetClass[] = ["ETF", "Acciones", "Bonos", "Fondos", "Crypto", "Cash", "CDT"];
+
+/** Tipos que se valoran por cantidad × precio (acciones, ETF, cripto, etc.). */
+export const PRICED_ASSET_CLASSES: AssetClass[] = ["ETF", "Acciones", "Bonos", "Crypto", "Cash"];
 
 export interface Holding {
   id: string;
@@ -14,6 +17,17 @@ export interface Holding {
   currentPrice: number;
   currency: "COP" | "USD";
   dividendYield: number;
+  /** Monto invertido, usado por Fondos y CDT en vez de cantidad × precio. */
+  investedAmount: number | null;
+  /** Rentabilidad informada por el fondo para cada periodo (%). */
+  monthlyReturn: number | null;
+  semesterReturn: number | null;
+  annualReturn: number | null;
+  /** Plazo del CDT en días y su tasa efectiva anual (%). */
+  termDays: number | null;
+  effectiveAnnualRate: number | null;
+  /** Fecha de apertura/inversión (Fondos y CDT). */
+  startDate: string | null;
 }
 
 export interface BrokerAccount {

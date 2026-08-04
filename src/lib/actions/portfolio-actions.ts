@@ -18,6 +18,11 @@ function num(formData: FormData, key: string): number {
   return Number.isFinite(value) ? value : 0;
 }
 
+function optionalStr(formData: FormData, key: string): string | null {
+  const value = str(formData, key);
+  return value || null;
+}
+
 export async function createBrokerAccountAction(formData: FormData) {
   const broker = str(formData, "broker");
   const label = str(formData, "label");
@@ -47,10 +52,14 @@ export async function createHoldingAction(formData: FormData) {
   const currency = str(formData, "currency");
   if (currency !== "COP" && currency !== "USD") throw new Error("Moneda inválida.");
 
+  const isFondo = type === "Fondos";
+  const isCdt = type === "CDT";
+
   await db().execute({
     sql: `insert into holdings
-            (id, broker_account_id, asset, ticker, type, currency, quantity, avg_cost, current_price, dividend_yield)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (id, broker_account_id, asset, ticker, type, currency, quantity, avg_cost, current_price, dividend_yield,
+             invested_amount, monthly_return, semester_return, annual_return, term_days, effective_annual_rate, start_date)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       randomUUID(),
       brokerAccountId,
@@ -58,10 +67,17 @@ export async function createHoldingAction(formData: FormData) {
       str(formData, "ticker").toUpperCase(),
       type,
       currency,
-      num(formData, "quantity"),
-      num(formData, "avgCost"),
-      num(formData, "currentPrice"),
-      num(formData, "dividendYield"),
+      isFondo || isCdt ? 0 : num(formData, "quantity"),
+      isFondo || isCdt ? 0 : num(formData, "avgCost"),
+      isFondo || isCdt ? 0 : num(formData, "currentPrice"),
+      isFondo || isCdt ? 0 : num(formData, "dividendYield"),
+      isFondo || isCdt ? num(formData, "investedAmount") : null,
+      isFondo ? num(formData, "monthlyReturn") : null,
+      isFondo ? num(formData, "semesterReturn") : null,
+      isFondo ? num(formData, "annualReturn") : null,
+      isCdt ? Math.round(num(formData, "termDays")) : null,
+      isCdt ? num(formData, "effectiveAnnualRate") : null,
+      isFondo || isCdt ? optionalStr(formData, "startDate") : null,
     ],
   });
 
